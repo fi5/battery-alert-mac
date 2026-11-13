@@ -2,6 +2,7 @@
 """Package the latest app as a drag-to-Applications DMG and a ZIP fallback."""
 import argparse
 import hashlib
+import plistlib
 from pathlib import Path
 import shutil
 import subprocess
@@ -30,12 +31,21 @@ shutil.copytree(app, staging / app.name, symlinks=True)
 (staging / "Applications").symlink_to("/Applications", target_is_directory=True)
 shutil.copy2(root / "INSTALL.txt", staging / "Read Me - 安装说明.txt")
 subprocess.run(["ditto", "-c", "-k", "--keepParent", str(app), str(archive)], check=True)
-# Write a filesystem image directly, then compress it to a normal UDIF DMG.
-# This avoids mounting a temporary volume or depending on virtual disk devices.
-raw = staging.parent / (staging.name + "-raw.dmg")
-subprocess.run(["hdiutil", "makehybrid", "-hfs", "-hfs-volume-name", "Battery Alert", "-o", str(raw), str(staging)], check=True)
-subprocess.run(["hdiutil", "convert", str(raw), "-format", "UDZO", "-o", str(dmg)], check=True)
+subprocess.run([
+    "hdiutil", "create", "-volname", "Battery Alert", "-srcfolder", str(staging),
+    "-fs", "HFS+", "-format", "UDZO", str(dmg)
+], check=True)
 subprocess.run(["hdiutil", "verify", str(dmg)], check=True)
+mount = Path(tempfile.mkdtemp(prefix="verify-mount-", dir=str(root / "build")))
+subprocess.run(["hdiutil", "attach", "-readonly", "-nobrowse", "-mountpoint", str(mount), str(dmg)], check=True, stdout=subprocess.DEVNULL)
+try:
+    installed_app = mount / app.name
+    metadata = plistlib.loads((installed_app / "Contents/Info.plist").read_bytes())
+    if metadata["CFBundleShortVersionString"] != version or not (mount / "Applications").is_symlink():
+        raise SystemExit("The DMG installation contents do not match this release.")
+    subprocess.run(["codesign", "--verify", "--strict", str(installed_app)], check=True)
+finally:
+    subprocess.run(["hdiutil", "detach", str(mount)], check=True, stdout=subprocess.DEVNULL)
 with (output / "SHA256SUMS.txt").open("a") as stream:
     for artifact in (dmg, archive):
         stream.write(hashlib.sha256(artifact.read_bytes()).hexdigest() + "  " + artifact.name + "\n")

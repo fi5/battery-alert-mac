@@ -35,7 +35,7 @@ python3 scripts/build.py
 python3 scripts/package.py
 ```
 
-Build outputs are ignored by Git. The release includes a universal app in DMG and ZIP formats plus SHA-256 checksums. Packaging writes and compresses a filesystem image without mounting a temporary disk. GitHub Actions builds and publishes releases when VERSION changes on main. See [release instructions](docs/RELEASING.md).
+Build outputs are ignored by Git. The release includes a universal app in DMG and ZIP formats plus SHA-256 checksums. Packaging uses the macOS disk-image service to create the DMG. GitHub Actions builds and publishes releases when VERSION changes on main. See [release instructions](docs/RELEASING.md).
 
 To uninstall, turn off Launch at login, quit, and move the app to Trash. Preferences remain in the `io.github.batteryalertmac` user defaults domain.
 

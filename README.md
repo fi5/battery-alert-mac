@@ -46,7 +46,7 @@ python3 scripts/package.py
 
 默认构建 `arm64` / `x86_64` 通用 App，DMG、ZIP 及 SHA-256 校验文件在 `dist/`。构建单一架构时可使用 `python3 scripts/build.py --arch arm64`。
 
-打包脚本直接生成文件系统映像并压缩成 DMG，无需挂载临时磁盘。GitHub Actions 会在 macOS runner 上测试、构建和发布发行包。
+打包脚本使用 macOS 磁盘映像服务生成 DMG。GitHub Actions 会在 macOS runner 上测试、构建和发布发行包。
 
 发布者如配置 Developer ID，可通过 `CODESIGN_IDENTITY` 使用开发者签名；公证步骤见 [发布说明](docs/RELEASING.md)。当前公开构建不包含开发者证书，也不宣称已公证。
 
