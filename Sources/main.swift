@@ -275,6 +275,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             if !self.model.showMenuBarIcon {
                 self.popover.performClose(nil)
                 self.showSettingsWindow()
+            } else {
+                self.settingsWindow?.orderOut(nil)
             }
         }
         let context = Unmanaged.passUnretained(self).toOpaque()
@@ -301,6 +303,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     @objc private func togglePopover() {
         if popover.isShown { popover.performClose(nil) }
         else if let button = statusItem.button {
+            settingsWindow?.orderOut(nil)
             model.refresh()
             NSApp.activate(ignoringOtherApps: true)
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
@@ -321,6 +324,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             window.title = L("LowBatt")
             window.styleMask = [.titled, .closable]
             window.isReleasedWhenClosed = false
+            window.collectionBehavior = [.moveToActiveSpace, .fullScreenAuxiliary]
+            window.level = .floating
             window.center()
             settingsWindow = window
         }
