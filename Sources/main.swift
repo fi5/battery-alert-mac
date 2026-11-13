@@ -271,13 +271,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         statusItem.isVisible = model.showMenuBarIcon
         model.onVisibilityChanged = { [weak self] in
             guard let self = self else { return }
+            self.popover.performClose(nil)
+            self.settingsWindow?.orderOut(nil)
             self.statusItem.isVisible = self.model.showMenuBarIcon
-            if !self.model.showMenuBarIcon {
-                self.popover.performClose(nil)
-                self.showSettingsWindow()
-            } else {
-                self.settingsWindow?.orderOut(nil)
-            }
         }
         let context = Unmanaged.passUnretained(self).toOpaque()
         if let source = IOPSNotificationCreateRunLoopSource({ context in
