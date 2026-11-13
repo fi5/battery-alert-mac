@@ -10,6 +10,8 @@
 "Notify at" = "提醒电量";
 "Play a sound" = "播放提示音";
 "Launch at login" = "登录时启动";
+"Show menu bar icon" = "显示菜单栏图标";
+"Open Battery Alert from Applications to show settings." = "从「应用程序」打开电池提醒，可再次显示设置。";
 "Notifications are not enabled" = "尚未开启通知权限";
 "Open notification settings" = "打开通知设置";
 "Allow notifications" = "允许通知";

@@ -10,6 +10,7 @@ A small native macOS menu bar app that warns before your battery gets too low. T
 - Native notifications with an optional sound.
 - One alert per low-battery episode; rearmed when power is connected or charge recovers.
 - Menu bar controls for current charge, notification testing, and optional launch at login.
+- Hide the menu bar icon and reopen the app from Applications to access settings.
 - English and Simplified Chinese, following your system language.
 - macOS 13 Ventura or later, Apple silicon and Intel.
 - No network, account, telemetry, charging modifications, or third-party dependencies.

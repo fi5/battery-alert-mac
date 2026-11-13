@@ -1,4 +1,5 @@
 import AppKit
+import Carbon
 import SwiftUI
 import IOKit.ps
 import ServiceManagement
@@ -32,6 +33,12 @@ final class BatteryModel: ObservableObject {
     }
     @Published var enabled: Bool { didSet { defaults.set(enabled, forKey: "enabled"); evaluate() } }
     @Published var sound: Bool { didSet { defaults.set(sound, forKey: "sound") } }
+    @Published var showMenuBarIcon: Bool {
+        didSet {
+            defaults.set(showMenuBarIcon, forKey: "showMenuBarIcon")
+            onVisibilityChanged?()
+        }
+    }
     @Published var authorization: UNAuthorizationStatus = .notDetermined
     @Published var loginEnabled = false
     @Published var message = ""
@@ -41,13 +48,15 @@ final class BatteryModel: ObservableObject {
     private var policy: AlertPolicy
     private var delivering = false
     var onBatteryChanged: (() -> Void)?
+    var onVisibilityChanged: (() -> Void)?
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-        defaults.register(defaults: ["threshold": 15, "enabled": true, "sound": true])
+        defaults.register(defaults: ["threshold": 15, "enabled": true, "sound": true, "showMenuBarIcon": true])
         threshold = min(50, max(5, defaults.integer(forKey: "threshold")))
         enabled = defaults.bool(forKey: "enabled")
         sound = defaults.bool(forKey: "sound")
+        showMenuBarIcon = defaults.bool(forKey: "showMenuBarIcon")
         policy = AlertPolicy(hasNotified: defaults.bool(forKey: "hasNotified"))
     }
 
@@ -141,10 +150,10 @@ final class BatteryModel: ObservableObject {
 struct SettingsView: View {
     @ObservedObject var model: BatteryModel
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 12) {
                 Image(nsImage: NSImage(named: NSImage.applicationIconName)!)
-                    .resizable().frame(width: 48, height: 48)
+                    .resizable().frame(width: 42, height: 42)
                 VStack(alignment: .leading, spacing: 4) {
                     Text(L("Battery Alert")).font(.headline)
                     Text(status).font(.subheadline).foregroundStyle(.secondary)
@@ -165,6 +174,13 @@ struct SettingsView: View {
             }
             Toggle(L("Play a sound"), isOn: $model.sound)
             Toggle(L("Launch at login"), isOn: Binding(get: { model.loginEnabled }, set: { model.setLogin($0) }))
+            VStack(alignment: .leading, spacing: 5) {
+                Toggle(L("Show menu bar icon"), isOn: $model.showMenuBarIcon)
+                if !model.showMenuBarIcon {
+                    Text(L("Open Battery Alert from Applications to show settings."))
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+            }
             if model.authorization != .authorized && model.authorization != .provisional {
                 VStack(alignment: .leading, spacing: 8) {
                     Label(L("Notifications are not enabled"), systemImage: "bell.slash").foregroundStyle(.orange)
@@ -190,7 +206,7 @@ struct SettingsView: View {
                 Button(L("Quit")) { NSApp.terminate(nil) }.buttonStyle(.borderless)
             }
         }
-        .padding(20).frame(width: 350)
+        .padding(18).frame(width: 330)
         .onAppear { model.refresh() }
     }
 
@@ -204,6 +220,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     private let model = BatteryModel()
     private var statusItem: NSStatusItem!
     private let popover = NSPopover()
+    private var settingsWindow: NSWindow?
     private var powerSource: CFRunLoopSource?
     private var timer: Timer?
 
@@ -222,6 +239,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         popover.behavior = .transient
         popover.contentViewController = NSHostingController(rootView: SettingsView(model: model))
         model.onBatteryChanged = { [weak self] in self?.updateIcon() }
+        statusItem.isVisible = model.showMenuBarIcon
+        model.onVisibilityChanged = { [weak self] in
+            guard let self = self else { return }
+            self.statusItem.isVisible = self.model.showMenuBarIcon
+            if !self.model.showMenuBarIcon {
+                self.popover.performClose(nil)
+                self.showSettingsWindow()
+            }
+        }
         let context = Unmanaged.passUnretained(self).toOpaque()
         if let source = IOPSNotificationCreateRunLoopSource({ context in
             guard let context = context else { return }
@@ -235,7 +261,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         model.refresh()
         let firstLaunch = !UserDefaults.standard.bool(forKey: "hasLaunched")
         UserDefaults.standard.set(true, forKey: "hasLaunched")
-        if firstLaunch { DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { self.togglePopover() } }
+        let launchedAtLogin = NSAppleEventManager.shared().currentAppleEvent?
+            .paramDescriptor(forKeyword: keyAEPropData)?.enumCodeValue == keyAELaunchedAsLogInItem
+        if firstLaunch || !launchedAtLogin {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { self.showSettings() }
+        }
     }
 
     @objc private func wake() { model.refresh() }
@@ -243,13 +273,35 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         if popover.isShown { popover.performClose(nil) }
         else if let button = statusItem.button {
             model.refresh()
-            popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             NSApp.activate(ignoringOtherApps: true)
+            popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         }
     }
 
+    private func showSettings() {
+        if model.showMenuBarIcon {
+            if !popover.isShown { togglePopover() }
+        } else {
+            showSettingsWindow()
+        }
+    }
+
+    private func showSettingsWindow() {
+        if settingsWindow == nil {
+            let window = NSWindow(contentViewController: NSHostingController(rootView: SettingsView(model: model)))
+            window.title = L("Battery Alert")
+            window.styleMask = [.titled, .closable]
+            window.isReleasedWhenClosed = false
+            window.center()
+            settingsWindow = window
+        }
+        model.refresh()
+        NSApp.activate(ignoringOtherApps: true)
+        settingsWindow?.makeKeyAndOrderFront(nil)
+    }
+
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        if !popover.isShown { togglePopover() }
+        showSettings()
         return true
     }
 

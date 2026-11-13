@@ -36,7 +36,7 @@ raw = staging.parent / (staging.name + "-raw.dmg")
 subprocess.run(["hdiutil", "makehybrid", "-hfs", "-hfs-volume-name", "Battery Alert", "-o", str(raw), str(staging)], check=True)
 subprocess.run(["hdiutil", "convert", str(raw), "-format", "UDZO", "-o", str(dmg)], check=True)
 subprocess.run(["hdiutil", "verify", str(dmg)], check=True)
-with (output / "SHA256SUMS.txt").open("x") as stream:
+with (output / "SHA256SUMS.txt").open("a") as stream:
     for artifact in (dmg, archive):
         stream.write(hashlib.sha256(artifact.read_bytes()).hexdigest() + "  " + artifact.name + "\n")
 print("Release files: " + str(output))
