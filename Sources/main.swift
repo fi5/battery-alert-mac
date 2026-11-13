@@ -49,6 +49,7 @@ final class BatteryModel: ObservableObject {
     private var delivering = false
     var onBatteryChanged: (() -> Void)?
     var onVisibilityChanged: (() -> Void)?
+    var onTestScheduled: (() -> Void)?
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -105,13 +106,36 @@ final class BatteryModel: ObservableObject {
 
     func testNotification() {
         guard !testing else { return }
-        if authorization == .denied { openNotificationSettings(); return }
-        if authorization == .notDetermined { requestPermission { self.testNotification() }; return }
         testing = true
-        let percent = battery?.percent ?? threshold
-        send(body: String(format: L("Test notification · Battery is at %d%%. Your alert threshold is unchanged."), percent), test: true) { success in
-            self.testing = false
-            self.message = success ? L("Test sent. If no banner appears, check notification settings and Focus.") : L("Could not send the notification. Please check notification settings.")
+        center.getNotificationSettings { settings in
+            DispatchQueue.main.async {
+                self.authorization = settings.authorizationStatus
+                if settings.authorizationStatus == .denied {
+                    self.testing = false
+                    self.message = L("Allow notifications in System Settings to receive battery alerts.")
+                    self.openNotificationSettings()
+                    return
+                }
+                if settings.authorizationStatus == .notDetermined {
+                    self.testing = false
+                    self.requestPermission { self.testNotification() }
+                    return
+                }
+                guard settings.alertSetting == .enabled, settings.alertStyle != .none else {
+                    self.testing = false
+                    self.message = L("Choose Banners or Alerts in notification settings to display the test.")
+                    self.openNotificationSettings()
+                    return
+                }
+                let percent = self.battery?.percent ?? self.threshold
+                self.send(body: String(format: L("Test notification · Battery is at %d%%. Your alert threshold is unchanged."), percent), test: true) { success in
+                    self.message = success ? L("Test scheduled. Look for a banner in 2 seconds.") : L("Could not send the notification. Please check notification settings.")
+                    if success { self.onTestScheduled?() }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + (success ? 2.5 : 0)) {
+                        self.testing = false
+                    }
+                }
+            }
         }
     }
 
@@ -122,7 +146,8 @@ final class BatteryModel: ObservableObject {
         if sound { content.sound = UNNotificationSound(named: UNNotificationSoundName("Glass")) }
         // A unique test ID prevents Notification Center from silently updating an existing banner.
         let identifier = test ? "test-\(UUID().uuidString)" : "battery-low"
-        center.add(UNNotificationRequest(identifier: identifier, content: content, trigger: nil)) { error in
+        let trigger = test ? UNTimeIntervalNotificationTrigger(timeInterval: 2, repeats: false) : nil
+        center.add(UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)) { error in
             DispatchQueue.main.async {
                 if let error = error { self.message = error.localizedDescription }
                 completion(error == nil)
@@ -136,7 +161,7 @@ final class BatteryModel: ObservableObject {
             else { try SMAppService.mainApp.unregister() }
             loginEnabled = SMAppService.mainApp.status == .enabled
             if SMAppService.mainApp.status == .requiresApproval {
-                message = L("Allow Battery Alert in System Settings → General → Login Items.")
+                message = L("Allow LowBatt in System Settings → General → Login Items.")
                 SMAppService.openSystemSettingsLoginItems()
             }
         } catch { message = error.localizedDescription; loginEnabled = SMAppService.mainApp.status == .enabled }
@@ -155,7 +180,7 @@ struct SettingsView: View {
                 Image(nsImage: NSImage(named: NSImage.applicationIconName)!)
                     .resizable().frame(width: 42, height: 42)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(L("Battery Alert")).font(.headline)
+                    Text(L("LowBatt")).font(.headline)
                     Text(status).font(.subheadline).foregroundStyle(.secondary)
                 }
                 Spacer()
@@ -177,7 +202,7 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 5) {
                 Toggle(L("Show menu bar icon"), isOn: $model.showMenuBarIcon)
                 if !model.showMenuBarIcon {
-                    Text(L("Open Battery Alert from Applications to show settings."))
+                    Text(L("Open LowBatt from Applications to show settings."))
                         .font(.caption).foregroundStyle(.secondary)
                 }
             }
@@ -239,6 +264,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         popover.behavior = .transient
         popover.contentViewController = NSHostingController(rootView: SettingsView(model: model))
         model.onBatteryChanged = { [weak self] in self?.updateIcon() }
+        model.onTestScheduled = { [weak self] in
+            self?.popover.performClose(nil)
+            NSApp.hide(nil)
+        }
         statusItem.isVisible = model.showMenuBarIcon
         model.onVisibilityChanged = { [weak self] in
             guard let self = self else { return }
@@ -289,7 +318,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     private func showSettingsWindow() {
         if settingsWindow == nil {
             let window = NSWindow(contentViewController: NSHostingController(rootView: SettingsView(model: model)))
-            window.title = L("Battery Alert")
+            window.title = L("LowBatt")
             window.styleMask = [.titled, .closable]
             window.isReleasedWhenClosed = false
             window.center()
@@ -307,10 +336,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
     private func updateIcon() {
         let name = model.battery?.onBattery == false ? "battery.100.bolt" : "battery.25"
-        let image = NSImage(systemSymbolName: name, accessibilityDescription: L("Battery Alert"))
+        let image = NSImage(systemSymbolName: name, accessibilityDescription: L("LowBatt"))
         image?.isTemplate = true
         statusItem.button?.image = image
-        statusItem.button?.toolTip = model.battery.map { "\(L("Battery Alert")) · \($0.percent)%" } ?? L("Battery Alert")
+        statusItem.button?.toolTip = model.battery.map { "\(L("LowBatt")) · \($0.percent)%" } ?? L("LowBatt")
     }
 
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification,

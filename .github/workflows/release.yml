@@ -37,4 +37,4 @@ jobs:
         run: |
           gh release create "$RELEASE_TAG" dist/* \
             --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
-            --title "Battery Alert $RELEASE_TAG" --notes-file docs/RELEASE_NOTES.md
+            --title "LowBatt $RELEASE_TAG" --notes-file docs/RELEASE_NOTES.md

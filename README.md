@@ -1,6 +1,6 @@
-# Battery Alert · 电池提醒
+# LowBatt · 电池提醒
 
-<img src="Assets/icon.png" width="96" alt="Battery Alert icon">
+<img src="Assets/icon.png" width="96" alt="LowBatt icon">
 
 一个轻量的原生 macOS 菜单栏工具，在电量过低前提前提醒你接通电源。默认 **15%** 提醒，使用系统通知横幅和电池图标。
 
@@ -20,7 +20,7 @@
 ## 安装
 
 1. 从 [Releases](https://github.com/fi5/battery-alert-mac/releases) 下载 `.dmg`。
-2. 打开 DMG，将 **Battery Alert.app** 拖入 **Applications**，再从应用程序打开。
+2. 打开 DMG，将 **LowBatt.app** 拖入 **Applications**，再从应用程序打开。
 3. 点击菜单栏电池图标，选择「允许通知」。
 4. 点击「发送测试通知」，确认横幅能显示；按需开启「登录时启动」。
 

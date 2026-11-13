@@ -1,14 +1,14 @@
-Battery Alert / 电池提醒
+LowBatt / 电池提醒
 
 Requires macOS 13 Ventura or later. Supports Apple silicon and Intel Macs.
 需要 macOS 13 Ventura 或更新版本，支持 Apple 芯片与 Intel Mac。
 
-1. Drag Battery Alert.app to Applications, then open it from Applications.
-   把 Battery Alert.app 拖到 Applications（应用程序），再从应用程序中打开。
+1. Drag LowBatt.app to Applications, then open it from Applications.
+   把 LowBatt.app 拖到 Applications（应用程序），再从应用程序中打开。
 2. Click the battery outline icon in the menu bar.
    点击菜单栏中的电池轮廓图标。
 3. Click Allow notifications. If notifications were previously denied, enable
-   Battery Alert in System Settings > Notifications and select Banners.
+   LowBatt in System Settings > Notifications and select Banners.
    点击「允许通知」。如曾拒绝权限，请到系统设置 → 通知 → 电池提醒中开启，选择「横幅」。
 4. Send a test notification, choose your threshold (15% by default), and optionally
    enable Launch at login. Focus and system notification settings can suppress alerts.
@@ -16,7 +16,7 @@ Requires macOS 13 Ventura or later. Supports Apple silicon and Intel Macs.
 
 This build is ad-hoc signed and has NOT been notarized by Apple.
 If macOS blocks it, attempt to open it, then go to System Settings > Privacy &
-Security and use Open Anyway for Battery Alert if that option is offered.
+Security and use Open Anyway for LowBatt if that option is offered.
 No need to disable Gatekeeper or run commands that remove security protections.
 此版本使用临时签名，尚未经过 Apple 公证。如被系统拦截，请先尝试打开，再到
 系统设置 → 隐私与安全性中查看并使用此应用对应的「仍要打开」（如提供）。

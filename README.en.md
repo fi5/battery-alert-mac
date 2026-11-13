@@ -1,4 +1,4 @@
-# Battery Alert
+# LowBatt
 
 A small native macOS menu bar app that warns before your battery gets too low. The default threshold is **15%**, with a system notification banner and a low-battery icon.
 
@@ -17,11 +17,11 @@ A small native macOS menu bar app that warns before your battery gets too low. T
 
 ## Install
 
-Open the DMG, drag **Battery Alert.app** into **Applications**, and launch it there. Click the menu bar battery icon, allow notifications, and send a test notification. Enable **Launch at login** if desired.
+Open the DMG, drag **LowBatt.app** into **Applications**, and launch it there. Click the menu bar battery icon, allow notifications, and send a test notification. Enable **Launch at login** if desired.
 
 The initial build is ad-hoc signed and **not notarized by Apple**. If macOS blocks it, follow [Apple's instructions for opening an app from an unidentified developer](https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unknown-developer-mh40616/mac). Do not disable Gatekeeper.
 
-If a banner does not appear, enable Battery Alert in System Settings → Notifications, select Banners, and check Focus settings. An accepted notification request does not guarantee a visible banner. The app must remain running; it cannot notify while the Mac is asleep or off, and checks again on wake. If already below the threshold when notifications are enabled, it attempts an alert immediately.
+If a banner does not appear, enable LowBatt in System Settings → Notifications, select Banners, and check Focus settings. An accepted notification request does not guarantee a visible banner. The app must remain running; it cannot notify while the Mac is asleep or off, and checks again on wake. If already below the threshold when notifications are enabled, it attempts an alert immediately.
 
 This adds a separate warning and does not change Apple's built-in 10% notification.
 

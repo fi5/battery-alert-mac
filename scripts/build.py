@@ -19,7 +19,7 @@ if not re.fullmatch(r"\d+\.\d+\.\d+", version):
 build = root / "build"
 build.mkdir(exist_ok=True)
 work = Path(tempfile.mkdtemp(prefix="app-", dir=str(build)))
-app = work / "Battery Alert.app"
+app = work / "LowBatt.app"
 contents = app / "Contents"
 macos = contents / "MacOS"
 macos.mkdir(parents=True)
@@ -28,13 +28,13 @@ shutil.copytree(root / "Resources", resources)
 shutil.copy2(root / "Assets/Battery.icns", resources / "Battery.icns")
 info = {
     "CFBundleIdentifier": "io.github.batteryalertmac",
-    "CFBundleName": "Battery Alert", "CFBundleDisplayName": "Battery Alert",
+    "CFBundleName": "LowBatt", "CFBundleDisplayName": "LowBatt",
     "CFBundleExecutable": "BatteryAlert", "CFBundleIconFile": "Battery.icns",
     "CFBundlePackageType": "APPL", "CFBundleShortVersionString": version,
     "CFBundleVersion": version, "CFBundleDevelopmentRegion": "en",
     "CFBundleLocalizations": ["en", "zh-Hans"], "LSMinimumSystemVersion": "13.0",
     "LSUIElement": True, "NSHighResolutionCapable": True,
-    "NSHumanReadableCopyright": "Copyright © 2026 Battery Alert contributors. MIT License.",
+    "NSHumanReadableCopyright": "Copyright © 2026 LowBatt contributors. MIT License.",
 }
 with (contents / "Info.plist").open("wb") as stream:
     plistlib.dump(info, stream)

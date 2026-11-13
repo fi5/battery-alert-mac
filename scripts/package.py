@@ -21,7 +21,7 @@ output = args.output.resolve()
 output.mkdir(parents=True, exist_ok=True)
 architectures = subprocess.check_output(["lipo", "-archs", str(app / "Contents/MacOS/BatteryAlert")], text=True).split()
 architecture = "universal" if {"arm64", "x86_64"}.issubset(architectures) else "-".join(architectures)
-name = "Battery-Alert-" + version + "-" + architecture
+name = "LowBatt-" + version + "-" + architecture
 dmg = output / (name + ".dmg")
 archive = output / (name + ".zip")
 if dmg.exists() or archive.exists():
@@ -32,7 +32,7 @@ shutil.copytree(app, staging / app.name, symlinks=True)
 shutil.copy2(root / "INSTALL.txt", staging / "Read Me - 安装说明.txt")
 subprocess.run(["ditto", "-c", "-k", "--keepParent", str(app), str(archive)], check=True)
 subprocess.run([
-    "hdiutil", "create", "-volname", "Battery Alert", "-srcfolder", str(staging),
+    "hdiutil", "create", "-volname", "LowBatt", "-srcfolder", str(staging),
     "-fs", "HFS+", "-format", "UDZO", str(dmg)
 ], check=True)
 subprocess.run(["hdiutil", "verify", str(dmg)], check=True)

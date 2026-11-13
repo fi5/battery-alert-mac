@@ -1,17 +1,17 @@
-"Battery Alert" = "电池提醒";
+"LowBatt" = "LowBatt";
 "Battery Low" = "电池电量低";
 "Battery is at %d%%. Connect your Mac to power soon." = "当前电池电量为 %d%%，请尽快接通电源。";
 "Test notification · Battery is at %d%%. Your alert threshold is unchanged." = "测试通知 · 当前电量为 %d%%。提醒阈值没有改变。";
 "Allow notifications in System Settings to receive battery alerts." = "请在系统设置中允许通知，以便接收低电量提醒。";
 "Test sent. If no banner appears, check notification settings and Focus." = "测试通知已发送。若未显示横幅，请检查通知设置和专注模式。";
 "Could not send the notification. Please check notification settings." = "通知发送失败，请检查系统通知设置。";
-"Allow Battery Alert in System Settings → General → Login Items." = "请在系统设置 → 通用 → 登录项中允许「电池提醒」。";
+"Allow LowBatt in System Settings → General → Login Items." = "请在系统设置 → 通用 → 登录项中允许「LowBatt」。";
 "Low battery alerts" = "低电量提醒";
 "Notify at" = "提醒电量";
 "Play a sound" = "播放提示音";
 "Launch at login" = "登录时启动";
 "Show menu bar icon" = "显示菜单栏图标";
-"Open Battery Alert from Applications to show settings." = "从「应用程序」打开电池提醒，可再次显示设置。";
+"Open LowBatt from Applications to show settings." = "从「应用程序」打开 LowBatt，可再次显示设置。";
 "Notifications are not enabled" = "尚未开启通知权限";
 "Open notification settings" = "打开通知设置";
 "Allow notifications" = "允许通知";
@@ -21,3 +21,6 @@
 "No internal battery detected" = "未检测到内置电池";
 "On battery" = "正在使用电池";
 "Connected to power" = "已连接电源";
+
+"Choose Banners or Alerts in notification settings to display the test." = "请在系统通知设置中选择「横幅」或「提醒」，以显示测试通知。";
+"Test scheduled. Look for a banner in 2 seconds." = "测试通知将在 2 秒后显示。";
